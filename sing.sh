@@ -3,7 +3,7 @@
 set -e
 
 # sound="USER INPUT"
-echo "Sound available: baby_sneeze, retro_game, cartoon_sneeze"
+echo "Sound available: baby_sneeze, retro_game, cartoon_sneeze, birds_chirping, dwarf_laugh, angelical_choir, medieval_orchestra"
 read -p "Enter sound: " sound
 
 if [ "$sound" = "baby_sneeze" ]; then
@@ -12,11 +12,18 @@ elif [ "$sound" = "retro_game" ]; then
 	file=213
 elif [ "$sound" = "cartoon_sneeze" ]; then
 	file=747
+elif [ "$sound" = "birds_chirping" ]; then
+	file=2472
+elif [ "$sound" = "dwarf_laugh" ]; then
+	file=2885
+elif [ "$sound" = "angelical_choir" ]; then
+	file=654
+elif [ "$sound" = "medieval_orchestra" ]; then
+	file=226
 else
 	echo "Unknown sound effect"
 	exit 1
 fi
-
 
 
 # Create directory for sound files
@@ -54,6 +61,7 @@ if [ \$exit_code -ne 0 ]; then
                 old_file=\$file
                 file=converted_\$old_file
                 play_sound
+		rm ../sounds/\$file.wav
 		rm error.log
         fi
 fi
@@ -61,5 +69,9 @@ fi
 
 chmod +x game_over.sh
 
+# clean environment
 ./game_over.sh
 rm game_over.sh
+rm ../sounds/$file.wav
+
+rm -r ../sounds
