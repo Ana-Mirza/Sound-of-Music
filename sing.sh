@@ -29,12 +29,6 @@ fi
 wget https://assets.mixkit.co/active_storage/sfx/$file/$file.wav
 mv $file.wav ../sounds/
 
-
-#echo "#!/bin/bash
-
-#file_path=\$(wslpath -w ../sounds/$file.wav)
-#/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c \"(New-Object Media.SoundPlayer '\$file_path').PlaySync()\"" > game_over.sh
-
 echo "#!/bin/bash
 
 file=$file
