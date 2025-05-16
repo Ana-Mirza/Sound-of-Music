@@ -54,8 +54,8 @@ if [ \$exit_code -ne 0 ]; then
                 old_file=\$file
                 file=converted_\$old_file
                 play_sound
+		rm error.log
         fi
-        rm error.log
 fi
 " > game_over.sh
 
