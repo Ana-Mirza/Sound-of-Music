@@ -12,3 +12,8 @@ $ sudo ./staff.sh
 ```console
 $ ./play.sh
 ```
+
+## Scheduling rehearsals
+If you want to set a schedule for WSL to rehearse a tune, check examples at this link: https://crontab.guru/examples.html
+
+The rehearsals are set in the backstage using the UNIX cron job scheduler. 

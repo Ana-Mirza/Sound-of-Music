@@ -2,7 +2,10 @@
 
 set -e
 
-# tune="USER INPUT"
+# Constants
+schedule_pattern="^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})$"
+
+# Get tune
 echo "🎼 Tunes available: baby_sneeze, retro_game, cartoon_sneeze, birds_chirping, dwarf_laugh, angelical_choir, medieval_orchestra"
 read -p "Enter tune🎶: " tune
 
@@ -25,6 +28,22 @@ else
 	exit 1
 fi
 
+# Rehearse options
+read -s -p "Do you want to rehearse the tune? (y/n)" rehearse
+echo ""
+
+if [ "$rehearse" = "y" ]; then
+	echo "Scheduling format: * * * * *" 
+	read -p "Enter schedule: " schedule
+fi
+
+# Check rehearse option
+if [[ "$schedule" =~ $schedule_pattern ]]; then
+	echo $schedule
+else
+	echo "Invalid schedule, see README.md for examples!"
+	rehearse="n"
+fi
 
 # Create directory for tune files
 if [ ! -d ../tunes ]; then 
@@ -42,7 +61,7 @@ file=$file
 
 play_tune() {
 file_path=\$(wslpath -w ../tunes/\$file.wav)
-/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c \"(New-Object Media.SoundPlayer '\$file_path').PlaySync()\" 2> error.log
+/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c \"(New-Object Media.SoundPlayer '\$file_path').PlaySync()\" > error.log
 }
 
 play_tune
@@ -64,13 +83,17 @@ if [ \$exit_code -ne 0 ]; then
 		rm ../tunes/\$file.wav
         fi
 fi
-" > game_over.sh
+" > rehearse_tune.sh
+chmod +x rehearse_tune.sh
 
-chmod +x game_over.sh
+# Play tune
+./rehearse_tune.sh
 
-# clean environment
-./game_over.sh
-rm game_over.sh
+# Clean
+if [ ! "$rehearse" = "y" ]; then
+	rm rehearse_tune.sh
+fi
+
 rm ../tunes/$file.wav
 rm error.log
 
