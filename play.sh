@@ -2,8 +2,13 @@
 
 set -e
 
-# Constants
+###### Constants ######
 schedule_pattern="^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})$"
+schedule_file="/var/spool/cron/crontabs/$USER"
+ID=$RANDOM
+
+#######################
+
 
 # Get tune
 echo "🎼 Tunes available: baby_sneeze, retro_game, cartoon_sneeze, birds_chirping, dwarf_laugh, angelical_choir, medieval_orchestra"
@@ -33,7 +38,7 @@ read -s -p "Do you want to rehearse the tune? (y/n)" rehearse
 echo ""
 
 if [ "$rehearse" = "y" ]; then
-	echo "Scheduling format: * * * * *" 
+	echo "UNIX crontab format: * * * * *" 
 	read -p "Enter schedule: " schedule
 fi
 
@@ -50,21 +55,28 @@ if [ ! -d ../tunes ]; then
 	mkdir ../tunes
 fi
 
+if [ ! -d ./rehearsals ]; then
+	mkdir rehearsals
+fi
+
 
 # Get tune desired
 wget https://assets.mixkit.co/active_storage/sfx/$file/$file.wav
 mv $file.wav ../tunes/
 
+file_path=$(realpath ../tunes/\$file.wav)
+
+# Create rehearsing script
 echo "#!/bin/bash
 
 file=$file
 
 play_tune() {
-file_path=\$(wslpath -w ../tunes/\$file.wav)
-/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c \"(New-Object Media.SoundPlayer '\$file_path').PlaySync()\" > error.log
+file_path=$file_path
+/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -c \"(New-Object Media.SoundPlayer '\$file_path').PlaySync()\"
 }
 
-play_tune
+play_tune 2> error.log
 exit_code=\$?
 
 # check for format errors
@@ -77,24 +89,23 @@ if [ \$exit_code -ne 0 ]; then
                 ffmpeg -i ../tunes/\$file.wav -acodec pcm_s16le -ar 44100 -ac 2 ../tunes/converted_\$file.wav -y
 
                 # try running again
-                old_file=\$file
-                file=converted_\$old_file
-                play_tune
-		rm ../tunes/\$file.wav
+                new_file=converted_\$file
+		mv ../tunes/\$new_file.wav ../tunes/\$file.wav
+                play_tune 2> error.log
         fi
 fi
-" > rehearse_tune.sh
-chmod +x rehearse_tune.sh
+" > ./rehearsals/rehearse_tune_$ID.sh
+chmod +x rehearsals/rehearse_tune_$ID.sh
 
 # Play tune
-./rehearse_tune.sh
+./rehearsals/rehearse_tune_$ID.sh
 
-# Clean
-if [ ! "$rehearse" = "y" ]; then
-	rm rehearse_tune.sh
+# Set up schedule
+if [ "$rehearse" = "y" ]; then
+	(crontab -l 2>/dev/null; echo "$schedule $(pwd)/rehearsals/rehearse_tune_$ID.sh") | crontab -
+	echo ""; echo "Your tune ID is: $ID"
+else
+	rm rehearsals/rehearse_tune_$ID.sh
+	rm ../tunes/$file.wav
 fi
 
-rm ../tunes/$file.wav
-rm error.log
-
-rm -r ../tunes
